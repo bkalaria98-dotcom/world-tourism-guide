@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="google" content="notranslate">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Tourism Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* ગૂગલના તમામ કદરૂપા પોપ-અપ, લિસ્ટ અને બારને કાયમ માટે હટાવો */
+        iframe.goog-te-banner-frame, 
+        .goog-te-banner-frame, 
+        .goog-te-banner,
+        #goog-gt-tt, 
+        .goog-te-balloon-frame,
+        .goog-te-menu-frame,
+        .goog-te-gadget,
+        .skiptranslate { 
+            display: none !important; 
+            visibility: hidden !important;
+        }
+        
+        body { 
+            top: 0px !important; 
+            position: static !important; 
+        }
+
+        /* 🌟 હાઈ-એન્ડ કૉમર્સિયલ ડ્રોપડાઉન ડિઝાઇન */
+        .commercial-lang-picker {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fcd34d; 
+            color: #fcd34d; 
+            padding: 6px 32px 6px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 50px; 
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+            appearance: none; 
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23fcd34d' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .commercial-lang-picker:hover {
+            background-color: #fcd34d;
+            color: #115e59;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23115e59' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+        }
+
+        .commercial-lang-picker option {
+            background-color: #0f766e;
+            color: white;
+            font-weight: 600;
+        }
+      </style>
+    </head>
+  <body class="bg-slate-50 text-slate-800 font-sans flex flex-col min-h-screen pb-24">
+
+    <!-- NAV LINE 1 (ટોપ પ્રીમિયમ હેડર) -->
+    <nav class="bg-gradient-to-r from-teal-950 via-teal-900 to-teal-950 text-white shadow-lg border-b border-teal-800/50 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+            
+            <!-- બ્રાન્ડ લોગો -->
+            <a href="/" class="flex items-center space-x-3 group">
+                <img src="/static/LOGOnew.png" alt="Logo" class="h-11 w-11 object-contain rounded-full shadow-lg bg-white p-0.5 transition-transform group-hover:scale-105">
+                <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-400 tracking-wide">World Tourism Guide</span>
+            </a>
+            
+            <!-- 🌟 કૉમર્સિયલ લેંગ્વેજ સિલેક્ટર -->
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-globe text-amber-300 text-sm opacity-80"></i>
+
+                <select id="langSelector" onchange="translatePage(this.value)" class="commercial-lang-picker">
+                    <option value="en">English</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="hi">હિન્દી (Hindi)</option>
+                    <option value="mr">મરાઠી (Marathi)</option>
+                    <option value="pa">પંજાબી (Punjabi)</option>
+                    <option value="bn">બંગાળી (Bengali)</option>
+                    <option value="ta">તમિલ (Tamil)</option>
+                    <option value="te">તેલુગુ (Telugu)</option>
+                    <option value="kn">કન્નડ (Kannada)</option>
+                    <option value="ml">મલયાલમ (Malayalam)</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">Deutsch (German)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                    <option value="ar">العربية Arabic)</option>
+                    <option value="zh-CN">简体中文 (Chinese)</option>
+                </select>
+                <!--
+                <select id="langSelector" onchange="translatePage(this.value)" class="commercial-lang-picker">
+                    <option value="en">English</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="hi">હિન્દી (Hindi)</option>
+                    <option value="mr">મરાઠી (Marathi)</option>
+                    <option value="pa">પંજાબી (Punjabi)</option>
+                    <option value="bn">બંગાળી (Bengali)</option>
+                    <option value="ta">તમિલ (Tamil)</option>
+                    <option value="te">તેલુગુ (Telugu)</option>
+                    <option value="kn">કન્નડ (Kannada)</option>
+                    <option value="ml">મલયાલમ (Malayalam)</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                </select>
+                -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- NAV LINE 2 (મોર્ડન નેવિગેશન મેનૂ) -->
+    <div class="bg-teal-800 text-white sticky top-0 z-30 shadow-md border-b border-teal-700">
+        <div class="max-w-7xl mx-auto px-6 py-2.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <a href="/" class="bg-teal-950/80 hover:bg-teal-950 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 border border-teal-600/30 transition shadow-inner">
+                    <i class="fa-solid fa-house text-amber-300"></i> Home
+                </a>
+                <button type="button" onclick="toggleFilters()" class="bg-teal-700/60 hover:bg-teal-600 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 border border-teal-600/50 transition">
+                    <i class="fa-solid fa-filter text-amber-300"></i> Filters
+                </button>
+            </div>
+
+            <div>
+                <div class="flex items-center space-x-2">
+                    {% if session.get('logged_in') or session.get('user_id') or session.get('is_admin') or session.get('role') == 'admin' %}
+                        <a href="/logout" class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 px-5 py-1.5 rounded-full text-sm font-bold transition shadow-md flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
+                    {% else %}
+                        <a href="/login" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-5 py-1.5 rounded-full text-sm font-bold transition shadow-md flex items-center gap-1.5">
+                            <i class="fa-solid fa-lock"></i> Login / Register
+                        </a>
+                    {% endif %}
+
+                    {% if session.get('logged_in') or session.get('user_id') or session.get('is_admin') or session.get('role') == 'admin' %}
+                        <a href="/profile" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 px-5 py-1.5 rounded-full text-sm font-bold transition shadow-md flex items-center gap-1.5 text-white">
+                            <i class="fa-solid fa-user"></i> My Profile
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ગૂગલ ટ્રાન્સલેટનું હિડન એલિમેન્ટ બેકગ્રાઉન્ડ માટે -->
+    <div id="google_translate_element" style="display:none !important;"></div>
+
+    <!-- મેઇન કન્ટેન્ટ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- 📦 કૉમર્સિયલ ભાષા ટ્રાન્સલેશન સ્ક્રિપ્ટ -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+            
+            setTimeout(syncDropdown, 500);
+        }
+
+        function translatePage(langCode) {
+            document.cookie = "googtrans=/en/" + langCode + "; path=/;";
+            document.cookie = "googtrans=/en/" + langCode + "; domain=" + window.location.hostname + "; path=/;";
+            window.location.reload();
+        }
+
+        function syncDropdown() {
+            const match = document.cookie.match(new RegExp('(^| )googtrans=([^;]+)'));
+            if (match) {
+                const parts = match[2].split('/');
+                const currentLang = parts[parts.length - 1];
+                const selector = document.getElementById('langSelector');
+                if (selector && currentLang) {
+                    selector.value = currentLang;
+                }
+            }
+        }
+
+        function toggleFilters() {
+            const sidebar = document.getElementById('filter-sidebar');
+            if (sidebar) { sidebar.classList.toggle('hidden'); }
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+   </body>
+</html>

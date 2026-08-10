@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %} 
+<meta name="google" content="notranslate">
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md border border-slate-200">
+
+{% if session.get('role') == 'admin' %}
+    <div class="flex flex-col md:flex-row gap-4 mb-8">
+    <!--<button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-md transition">
+            Visit without login (Guests)
+        </button>
+        <button class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-bold shadow-md transition">
+            Visit with login(Members)
+        </button>-->
+    </div>
+  {% endif %}
+
+    <h2 class="text-2xl font-bold text-pink-600 mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-list-check"></i> Pending User Contribution Approvals
+    </h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="border-b bg-slate-50 text-slate-600 font-bold text-sm">
+                    <th class="p-3">ID</th>
+                    <th class="p-3">Location Title</th>
+                    <th class="p-3">Contributed By</th>
+                    <th class="p-3 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    {% for p in pending_places %}
+        <tr class="border-b hover:bg-slate-50/50">
+            <td class="p-3">{{ p.id }}</td>
+            <td class="p-3 font-semibold">{{ p.title }}</td>
+            <td class="p-3 text-sm text-slate-500">{{ p.added_by }}</td>
+            <td class="p-3 text-right flex gap-2 justify-end">
+                <!-- ફક્ત એક જ View Details બટન -->
+                <a href="/admin/view_place_details/{{ p.id }}" 
+                   class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold px-3 py-1.5 rounded transition">
+                   View Details
+                </a>
+                
+                <!-- Delete 
+                <button onclick="confirmDelete({{ p.id }})" 
+                        class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded transition">
+                    Delete
+                </button>બટન -->
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="4" class="text-center py-8 text-slate-400">No pending approvals!</td>
+        </tr>
+    {% endfor %}
+</tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDelete(placeId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You want to delete this place forever!",
+        icon: 'warning',   
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "/admin/delete_place/" + placeId;
+        }
+    })
+}
+</script>
+
+{% endblock %}

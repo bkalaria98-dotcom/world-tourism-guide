@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<meta name="google" content="notranslate">
+<div class="max-w-4xl mx-auto py-8 px-4">
+    <!-- યૂઝર પ્રોફાઇલ હેડર -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6 flex items-center gap-4">
+        <div class="bg-teal-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">
+            {{ session.get('username')[0] | upper }}
+        </div>
+        <div>
+            <h2 class="text-2xl font-black text-slate-800">{{ session.get('username') }}</h2>
+            <p class="text-xs text-slate-500 font-semibold">{{ session.get('email') }} | Role: <span class="text-teal-600 uppercase">{{ session.get('role') }}</span></p>
+        </div>
+    </div>
+
+    <!-- 🛠️ પ્રોફાઇલ અને વધારાની વિગતો (Mobile, Address, DOB) એડિટ કરવા માટેનું ફોર્મ -->
+    <!-- 🛠️ પ્રોફાઇલ અને વધારાની વિગતો એડિટ કરવા માટેનું ફોર્મ -->
+<div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+    <h3 class="text-lg font-bold text-slate-800 mb-4"><i class="fa-solid fa-user-pen text-teal-600"></i> Edit Profile & Personal Details</h3>
+       <form action="{{ url_for('update_profile') }}" method="POST" class="space-y-4" onsubmit="this.submit();">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Username / નામ</label>
+                <input type="text" name="username" value="{{ session.get('username') }}" class="w-full border rounded-lg p-2 text-sm bg-slate-50" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Email / ઈમેલ (Cannot be changed)</label>
+                <input type="email" value="{{ session.get('email') }}" class="w-full border rounded-lg p-2 text-sm bg-slate-100 text-slate-500" disabled>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Mobile Number / મોબાઈલ નંબર</label>
+                <input type="text" name="mobile" value="{{ user.mobile if user and user.mobile else '' }}" placeholder="Enter mobile number" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Birth Date / જન્મ તારીખ</label>
+                <input type="date" name="dob" value="{{ user.dob if user and user.dob else '' }}" class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-500 mb-1">Address / એડ્રેસ</label>
+                <textarea name="address" rows="2" placeholder="Enter your full address" class="w-full border rounded-lg p-2 text-sm bg-slate-50">{{ user.address if user and user.address else '' }}</textarea>
+            </div>
+        </div>
+        <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-lg text-xs font-bold transition cursor-pointer">Save Changes</button>
+   </form> 
+</div>
+    </div>
+
+    <h3 class="text-xl font-bold text-slate-800 mb-4"><i class="fa-solid fa-map-location-dot text-teal-600"></i> My Added Places (તમે ઉમેરેલી જગ્યાઓ)</h3>
+    
+    {% if user_places %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for p in user_places %}
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex gap-4 items-center">
+                    <div class="w-20 h-20 bg-slate-100 rounded-lg overflow-hidden shrink-0">
+                        {% if p.image_path %}
+                            <img src="/static/{{ p.image_path }}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-[10px] text-slate-400">No Image</div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow">
+                        <span class="text-[10px] bg-teal-50 text-teal-700 font-bold px-2 py-0.5 rounded-full">{{ p.category }}</span>
+                        <h4 class="font-bold text-sm text-slate-800 mt-1">{{ p.title }}</h4>
+                        <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot"></i> {{ p.village_city }}</p>
+                        
+                        <div class="mt-2">
+                            {% if p.is_approved == 1 %}
+                                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Approved</span>
+                            {% else %}
+                                <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded">Pending Approval</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white p-8 rounded-xl text-center border border-slate-200 text-slate-400">
+            <p>You haven't added any places yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

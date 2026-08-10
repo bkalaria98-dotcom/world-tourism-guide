@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta name="google" content="notranslate">
+    <meta charset="UTF-8">
+    <title>એડમિન પેનલ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="card p-4 shadow-sm bg-white">
+            <h3 class="mb-4 text-danger">⚙️ એડમિન પેનલ (Pending Places Verification)</h3>
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>સ્થળનું નામ</th>
+                        <th>કેટેગરી</th>
+                        <th>દેશ</th>
+                        <th>માહિતી આપનાર</th>
+                        <th>એક્શન</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for place in places %}
+                    <tr>
+                        <td>{{ place.id }}</td>
+                        <td>{{ place.title }}</td>
+                        <td>{{ place.category }}</td>
+                        <td>{{ place.country }}</td>
+                        <td>{{ place.added_by }}</td>
+                        <td>
+                            <a href="/approve/{{ place.id }}?lang={{current_lang}}" class="btn btn-success btn-sm">✅ Approve</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">કોઈ પેન્ડિંગ સ્થળ નથી.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="/?lang={{current_lang}}" class="btn btn-primary mt-3">મુખ્ય પેજ પર પાછા જાઓ</a>
+        </div>
+    </div>
+</body>
+</html>

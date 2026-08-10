@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<meta name="google" content="notranslate">
+<div class="max-w-4xl mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-6">Manage Categories</h2>
+
+    <!-- ફોર્મનો ટેગ અહીંથી શરૂ થશે અને નીચે બટન પછી પૂરો થશે -->
+    <form action="{{ url_for('add_category') }}" method="POST" class="mb-8 p-4 bg-white shadow rounded">
+        <!-- આ લાઈન નીચે મુજબ ઉમેરવી જે ડેટા સબમિટ કરવામાં મદદ કરશે -->
+       
+    
+       <input type="text" name="category_name" placeholder="Enter new category" required class="border p-2 rounded w-full md:w-1/2">
+       <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Add Category</button>
+    </form>
+
+    <!-- કેટેગરી લિસ્ટ -->
+    <table class="w-full bg-white shadow rounded">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="p-3 text-left">Category Name</th>
+                <th class="p-3 text-right">Action</th>
+            </tr>
+        </thead>
+    
+    <tbody>
+    {% for cat in categories %}
+    <tr>
+        <td class="p-3 border-t">{{ cat.name_eng }}</td> 
+        <td class="p-3 border-t text-right">
+            <!-- ફોર્મની એક્શનમાં સાચો રાઉટ /admin/delete_category/ મૂકો -->
+            <form action="/admin/delete_category/{{ cat.id }}" method="POST" onsubmit="return confirmDelete(this);">
+                <button type="submit" class="text-red-600 hover:text-red-800 font-bold bg-transparent border-0 cursor-pointer">
+                    Delete
+                </button>
+            </form> 
+        </td>
+    </tr>
+{% endfor %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDelete(formElement) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This category will be permanently deleted!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete!',
+        cancelButtonText: 'No'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            formElement.submit(); // જો યુઝર હા પાડે તો જ ફોર્મ સબમિટ થશે
+        }
+    });
+    return false; // આ લાઈન ફોર્મને તરત સબમિટ થતું અટકાવશે
+}
+</script>
+</tbody>
+</div>
+{% endblock %}

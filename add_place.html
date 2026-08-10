@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block content %}
+<meta name="google" content="notranslate">
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md border border-slate-200 relative">
+    
+    <!-- ⬅️ પાછા ફરવાનું બટન -->
+    <a href="/" class="absolute top-4 right-4 text-xs font-bold text-slate-500 hover:text-red-600 bg-slate-100 px-3 py-1 rounded border transition">
+        <i class="fa-solid fa-xmark"></i> Cancel / Back
+    </a>
+
+    <h2 class="text-lg font-black text-teal-800 mb-5 flex items-center gap-2 border-b pb-2">
+        <i class="fa-solid fa-map-location-dot text-teal-600"></i> Destination Specifications Form
+    </h2>
+    
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Enter Your Name *:</label>
+            <input type="text" name="user_name" value="{{ session.username }}" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Select Category *:</label>
+            <select name="category" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+                {% for cat in categories %} <option value="{{ cat }}">{{ cat }}</option> {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Location Name (Title) *:</label>
+            <input type="text" name="title" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Exact Location / Address *:</label>
+            <input type="text" name="exact_location" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+        </div>
+
+        <!-- Geographic Matrix Block -->
+        <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/40 space-y-3">
+            <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wide">Geographic Matrix (Dynamic API List)</h4>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500">Country *:</label>
+                    <select id="countrySelect" name="country" class="w-full border rounded-md p-2 text-xs bg-white">
+                        <option value="">Select Country</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500">State *:</label>
+                    <select id="stateSelect" name="state" class="w-full border rounded-md p-2 text-xs bg-white">
+                        <option value="">Select State</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500">District / City:</label>
+                    <select id="citySelect" name="district" class="w-full border rounded-md p-2 text-xs bg-white">
+                        <option value="">Select District/City</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500">Village / Specific Area:</label>
+                    <input type="text" name="city" placeholder="Enter village or area" class="w-full border rounded-md p-2 text-xs bg-white">
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Food & Stay Arrangements:</label>
+            <textarea name="food_stay" rows="2" class="w-full border rounded-lg p-2 text-sm bg-slate-50"></textarea>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">How to Reach (Vehicles/Transport):</label>
+            <textarea name="transport" rows="2" class="w-full border rounded-lg p-2 text-sm bg-slate-50"></textarea>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Description Paragraph *:</label>
+            <textarea name="description" rows="3" required class="w-full border rounded-lg p-2 text-sm bg-slate-50"></textarea>
+        </div>
+        
+        <div class="border-t pt-3 space-y-3">
+            <div>
+                <label class="block text-xs font-bold text-amber-700 mb-1"><i class="fa-solid fa-images"></i> Upload Photos</label>
+                <input type="file" name="photos" multiple accept="image/*" class="w-full text-xs border rounded-lg p-1.5 bg-slate-50">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-amber-700 mb-1"><i class="fa-solid fa-video"></i> Upload Video</label>
+                <input type="file" name="video" accept="video/*" class="w-full text-xs border rounded-lg p-1.5 bg-slate-50">
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold p-3 rounded-lg text-sm shadow transition">
+            💾 Save Destination Record
+        </button>
+    </form>
+</div>
+
+<!-- 🌐 CountriesNow API માટે JavaScript Script -->
+<!-- 🌐 CountriesNow API માટે સુધારેલી JavaScript Script -->
+<script>
+    const countrySelect = document.getElementById('countrySelect');
+    const stateSelect = document.getElementById('stateSelect');
+    const citySelect = document.getElementById('citySelect');
+
+    // ૧. બધા દેશો લોડ કરવા માટે
+    fetch('https://countriesnow.space/api/v0.1/countries')
+        .then(response => response.json())
+        .then(data => {
+            data.data.forEach(country => {
+                let opt = document.createElement('option');
+                opt.value = country.country;
+                opt.textContent = country.country;
+                countrySelect.appendChild(opt);
+            });
+        });
+
+    // ૨. દેશ બદલાય ત્યારે તેના રાજ્યો અને સીધી જ તે દેશની બધી જ સિટીઝ/જિલ્લાઓ લોડ કરવા માટે
+    countrySelect.addEventListener('change', function() {
+        const selectedCountry = this.value;
+        stateSelect.innerHTML = '<option value="">Select State</option>';
+        citySelect.innerHTML = '<option value="">Select District/City</option>';
+
+        if (!selectedCountry) return;
+
+        // રાજ્યો લાવવા માટેની API Request
+        fetch('https://countriesnow.space/api/v0.1/countries/states', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: selectedCountry })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error && data.data.states) {
+                data.data.states.forEach(state => {
+                    let opt = document.createElement('option');
+                    opt.value = state.name;
+                    opt.textContent = state.name;
+                    stateSelect.appendChild(opt);
+                });
+            }
+        });
+
+        // દેશના બધા જ શહેરો/જિલ્લાઓ સીધા લાવવા માટેની API Request
+        fetch('https://countriesnow.space/api/v0.1/countries/cities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: selectedCountry })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error && data.data) {
+                data.data.forEach(city => {
+                    let opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

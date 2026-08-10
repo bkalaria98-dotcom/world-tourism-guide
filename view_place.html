@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+<!--<meta name="google" content="notranslate"> -->
+<div class="max-w-4xl mx-auto my-4 bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200 animate-fade-in">
+    
+    <!-- હેડર ટાઇટલ અને ક્લોઝ બટન -->
+    <div class="bg-teal-900 text-white px-6 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-black tracking-tight">{{ place.title }}</h1>
+        <a href="/" class="text-slate-300 hover:text-white bg-teal-800 p-2 rounded-full transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </a>
+    </div>
+
+    <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- 📸 ડાબી બાજુ: મલ્ટીપલ ફોટા માટે સ્લાઇડર (Left/Right Arrows) -->
+        <div class="space-y-4">
+            <div class="relative overflow-hidden rounded-xl shadow-lg bg-slate-900 aspect-[16/9] flex items-center justify-center border">
+                
+                <!-- મીડિયા ડિસ્પ્લે કન્ટેનર -->
+                <div id="mediaViewer" class="w-full h-full flex items-center justify-center">
+                    <!-- જાવાસ્ક્રિપ્ટ દ્વારા ફોટા લોડ થશે -->
+                </div>
+
+                <!-- ⬅️ ➡️ લેફ્ટ અને રાઇટ એરો બટન્સ (જો એકથી વધુ ફોટો હોય તો જ કામ કરશે) -->
+                <button onclick="prevMedia()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white p-2.5 rounded-full transition shadow z-10">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button onclick="nextMedia()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black text-white p-2.5 rounded-full transition shadow z-10">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <!-- ફોટો કાઉન્ટર ઇન્ડિકેટર (દા.ત. 1/3) -->
+                <div class="absolute bottom-2 right-2 bg-black/70 text-white text-[11px] px-2.5 py-0.5 rounded-full font-bold z-10" id="mediaCounter">
+                    1 / 1
+                </div>
+            </div>
+            
+            <!-- વિશેષ માહિતી -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-sm">
+                <div><span class="font-bold text-slate-500">Exact Location:</span> <span class="text-slate-800 font-semibold">{{ place.exact_location }}</span></div>
+                <div><span class="font-bold text-slate-500">Category:</span> <span class="text-teal-700 font-semibold">{{ place.category_name }}</span></div>
+                <div><span class="font-bold text-slate-500">Added By:</span> <span class="text-slate-700 font-semibold">{{ place.added_by }}</span></div>
+            </div>
+        </div>
+
+        <!-- 📄 જમણી બાજુ: વિગતવાર માહિતી અને Admin Actions -->
+        <div class="space-y-6 flex flex-col justify-between">
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-xs font-black uppercase text-teal-800 tracking-wider mb-1"><i class="fa-solid fa-circle-info"></i> About Place (જ્યા વિશે વિગત):</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line font-medium">{{ place.description }}</p>
+                </div>
+
+                <div class="border-t pt-3 space-y-2 text-xs">
+                    <div><strong class="text-slate-500">Food & Stay:</strong> <span class="text-slate-700">{{ place.food_stay or 'Information not available' }}</span></div>
+                    <div><strong class="text-slate-500">Transport:</strong> <span class="text-slate-700">{{ place.transport or 'Information not available' }}</span></div>
+                </div>
+            </div>
+
+            <!-- 🔒 ફક્ત Admin માટે જ એડિટ અને ડિલીટ બટન -->
+            {% if session.get('is_admin') or session.get('username') == 'Main Admin' %}
+            <div class="pt-4 border-t border-slate-200 flex gap-3">
+                <a href="/admin/edit_place/{{ place.id }}" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl text-center text-xs shadow transition">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Place
+                </a>
+                <form action="/admin/delete_place/{{ place.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this place?');" class="flex-1">
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-xl text-xs shadow transition">
+                        <i class="fa-solid fa-trash mr-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</div>
+
+<!-- ⚙️ જાવાસ્ક્રિપ્ટ સ્લાઇડર અને એરો લોજિક -->
+<script>
+    // ડેટાબેઝમાંથી આવેલા ફોટા અથવા મીડિયાની યાદી
+    const mediaFiles = [
+        {% if place.image_path %}
+            { type: 'image', url: "{{ url_for('static', filename='photos/' ~ place.image_path.split('/')[-1].split('\\')[-1]) }}" }
+        {% endif %}
+        // જો તમારી પાસે મલ્ટીપલ ફોટા માટે અલગ ટેબલ કે લિસ્ટ હોય તો અહીં લૂપથી ઉમેરી શકાય
+    ];
+
+    let currentIndex = 0;
+
+    function renderMedia() {
+        const container = document.getElementById('mediaViewer');
+        const counter = document.getElementById('mediaCounter');
+        
+        if (mediaFiles.length === 0) {
+            container.innerHTML = `<img src="https://placehold.co/800x450?text=No+Image+Found" class="w-full h-full object-cover">`;
+            counter.innerText = "0 / 0";
+            return;
+        }
+
+        const current = mediaFiles[currentIndex];
+        counter.innerText = `${currentIndex + 1} / ${mediaFiles.length}`;
+
+        if (current.type === 'image') {
+            container.innerHTML = `<img src="${current.url}" class="w-full h-full object-cover transition-all duration-300" onerror="this.src='https://placehold.co/800x450?text=Image+Not+Found'">`;
+        }
+    }
+
+    function nextMedia() {
+        if (mediaFiles.length <= 1) return;
+        currentIndex = (currentIndex + 1) % mediaFiles.length;
+        renderMedia();
+    }
+
+    function prevMedia() {
+        if (mediaFiles.length <= 1) return;
+        currentIndex = (currentIndex - 1 + mediaFiles.length) % mediaFiles.length;
+        renderMedia();
+    }
+
+    document.addEventListener("DOMContentLoaded", renderMedia);
+</script>
+
+{% endblock %}

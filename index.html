@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="flex flex-col md:flex-row gap-6 mb-16">
+    
+    <!-- 🔍 ફિલ્ટર સાઇડબાર -->
+<aside id="filter-sidebar" class="w-full md:w-64 bg-white p-4 rounded-lg shadow-sm border border-slate-200 hidden shrink-0">
+    <h3 class="font-bold text-lg mb-4 text-slate-700 border-b pb-2"><i class="fa-solid fa-filter text-teal-600"></i> Filters</h3>
+    <form method="GET" action="/" class="space-y-3">
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Country / દેશ</label>
+            <select name="country" id="filterCountrySelect" class="w-full border rounded-md p-2 text-sm bg-slate-50">
+                <option value="All Countries">All Countries</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">State / રાજ્ય</label>
+            <select name="state" id="filterStateSelect" class="w-full border rounded-md p-2 text-sm bg-slate-50">
+                <option value="All States">All States</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">District / જિલ્લો</label>
+            <select name="district" id="filterCitySelect" class="w-full border rounded-md p-2 text-sm bg-slate-50">
+                <option value="All Districts">All Districts</option>
+            </select>
+        </div>
+        <!-- બાકીના કેટેગરી અને સર્ચ ઇનપુટ -->
+        <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Category / કેટેગરી</label>
+            <select name="category" class="w-full border rounded-md p-2 text-sm bg-slate-50">
+                <option value="All Categories">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if sel_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-md font-bold text-sm mt-2 cursor-pointer">Apply Filter</button>
+    </form>
+</aside>
+
+    <!-- 🗺️ કાર્ડ્સ ગ્રીડ -->
+    <!-- 🗺️ કાર્ડ્સ ગ્રીડ -->
+    <div class="flex-grow">
+         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {% for p in places %}
+                  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition">
+                      <!-- ફોટો સેક્શન -->
+                        <div class="h-44 bg-slate-100 relative overflow-hidden border-b">
+                            {% set img_path = '' %}
+                            {% if p.photos and p.photos|length > 0 %}
+                                {% set img_path = p.photos[0] %}
+                            {% elif p.image_path %}
+                                {% set img_path = p.image_path %}
+                            {% endif %}
+
+                            {% if img_path %}
+                                {% set clean_img = img_path.replace('\\', '/') %}
+                                {% if not clean_img.startswith('/static/') %}
+                                    {% set clean_img = ('/static/' + clean_img) if clean_img.startswith('photos/') else ('/static/photos/' + clean_img) %}
+                                {% endif %}
+                                <img src="{{ clean_img }}" class="h-full w-full object-cover" alt="{{ p.title }}"
+                                onerror="this.src='https://placehold.co/400x250?text=No+Image'">
+                            {% else %}
+                                <div class="h-full w-full flex items-center justify-center text-slate-400 italic">📷 No Image</div>
+                            {% endif %}
+                        </div>
+            
+                        <!-- માહિતી વિભાગ -->
+                        <div class="p-4 flex-grow">
+                            <span class="inline-block bg-teal-100 text-teal-800 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                                {{ p.category }}
+                            </span>
+                            <h3 class="text-md font-black text-slate-800 mt-2">{{ p.title }}</h3>
+                            <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot"></i> {{ p.village_city }}, {{ p.state }}</p>
+                        </div>
+
+                         <!-- બટનોનો વિભાગ -->
+                         <div class="flex gap-2 p-4 pt-0">
+                          <!-- View Details બટન -->
+                             <button onclick='showFullDetails({{ p|tojson }})' class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-1 cursor-pointer">
+                                 View <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                             </button>
+                
+                        <!-- એડમિન માટે Edit અને Delete બટન -->
+                             {% if session.get('role') == 'admin' %}
+                                 <a href="{{ url_for('edit_place', place_id=p.id) }}" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-2.5 rounded-lg transition shadow-sm text-center">
+                                      Edit
+                                 </a>
+                                 <form id="delete-form-{{ p.id }}" action="{{ url_for('delete_place', place_id=p.id) }}" method="POST">
+                                       <button type="button" onclick="confirmDelete('{{ p.id }}', '{{ p.title }}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2.5 rounded-lg transition shadow-sm cursor-pointer">
+                                         <i class="fa-solid fa-trash"></i>
+                                      </button>
+                                 </form>
+                             {% endif %}
+                         </div>
+                    </div>
+              {% endfor %}
+       </div>
+    </div>
+</div>
+
+<!-- 📦 વિગતો માટેનું પોપ-અપ મોડલ -->
+<div id="detailsModal" style="display: none;" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-50 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <div class="bg-gradient-to-r from-teal-950 to-teal-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+            <div>
+                <h3 id="modal-title" class="text-xl md:text-2xl font-black text-amber-300 tracking-wide">-</h3>
+                <p class="text-xs text-teal-100 font-semibold mt-0.5">
+                    <i class="fa-solid fa-map-pin mr-1"></i><span id="modal-category">Category</span>
+                </p>
+            </div>
+            <button onclick="closeModal()" class="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition h-9 w-9 flex items-center justify-center cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-grow space-y-6">
+            <div class="flex flex-wrap gap-2 text-xs font-bold text-amber-800">
+                <span class="bg-amber-50 px-3 py-1.5 rounded-md border border-amber-100 shadow-sm flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span id="modal-city">-</span>, <span id="modal-district">-</span>, <span id="modal-state">-</span>, <span id="modal-country">-</span>
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 space-y-4">
+                    <div class="relative overflow-hidden rounded-xl shadow-md aspect-[16/9] border border-slate-200 bg-black flex items-center justify-center">
+                        <img id="modal-image" src="" alt="Place Image" class="w-full h-full object-cover">
+                        <button onclick="prevModalMedia()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2.5 rounded-full cursor-pointer"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="nextModalMedia()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 text-white p-2.5 rounded-full cursor-pointer"><i class="fa-solid fa-chevron-right"></i></button>
+                        <div class="absolute bottom-2 right-2 bg-black/70 text-white text-[11px] px-2.5 py-0.5 rounded-full font-bold" id="modalMediaCounter">1 / 1</div>
+                    </div>
+                    
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/60 shadow-sm">
+                        <h4 class="text-sm font-black text-teal-950 uppercase tracking-wider mb-2 border-b pb-1.5">About Place:</h4>
+                        <p id="modal-description" class="text-slate-600 text-sm leading-relaxed whitespace-pre-line font-medium">-</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-white p-5 rounded-xl border border-teal-500/20 shadow-md space-y-4">
+                        <h4 class="text-xs font-black text-teal-600 uppercase tracking-wider text-center bg-teal-50 py-1 rounded-full">Verified Details</h4>
+                        
+                        <div class="text-xs">
+                            <span class="text-slate-400 font-bold block mb-0.5">Exact Location:</span>
+                            <span id="modal-exact-location" class="font-extrabold text-slate-800">-</span>
+                        </div>
+                        <div class="text-xs">
+                            <span class="text-slate-400 font-bold block mb-0.5">Food & Stay:</span>
+                            <span id="modal-food-stay" class="font-extrabold text-teal-700">-</span>
+                        </div>
+                        <div class="text-xs">
+                            <span class="text-slate-400 font-bold block mb-0.5">Transport:</span>
+                            <span id="modal-transport" class="font-extrabold text-amber-700">-</span>
+                        </div>
+
+                        <hr class="border-slate-100">
+                        <div class="text-[11px] text-slate-400">Added By: <span id="modal-added-by" class="font-bold text-slate-600">-</span></div>
+                        <div id="modal-dynamic-buttons" class="space-y-2 pt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentActivePlace = null;
+    let modalMediaList = [];
+    let currentModalIndex = 0;
+
+    function showFullDetails(placeObj) {
+        if(!placeObj) return;
+        currentActivePlace = placeObj;
+        
+        document.getElementById('modal-title').innerText = placeObj.title || '-';
+        document.getElementById('modal-category').innerText = placeObj.category || 'Category';
+        document.getElementById('modal-description').innerText = placeObj.description || 'No information available.';
+        document.getElementById('modal-country').innerText = placeObj.country || '-';
+        document.getElementById('modal-state').innerText = placeObj.state || '-';
+        document.getElementById('modal-district').innerText = placeObj.district || '-';
+        document.getElementById('modal-city').innerText = placeObj.village_city || '-';
+        
+        document.getElementById('modal-exact-location').innerText = placeObj.exact_location || 'Information not available';
+        document.getElementById('modal-food-stay').innerText = placeObj.food_stay || 'Information not available';
+        document.getElementById('modal-transport').innerText = placeObj.transport || 'Information not available';
+        document.getElementById('modal-added-by').innerText = placeObj.added_by || 'Unknown';
+    
+        
+        modalMediaList = [];
+        if (placeObj.photos && Array.isArray(placeObj.photos) && placeObj.photos.length > 0) {
+            placeObj.photos.forEach(p => {
+                let cleanPath = p.replace(/\\/g, '/');
+                if (!cleanPath.startsWith('/static/')) {
+                    cleanPath = cleanPath.startsWith('photos/') ? "/static/" + cleanPath : "/static/photos/" + cleanPath;
+                }
+                modalMediaList.push(cleanPath);
+            });
+        } 
+        
+        if (modalMediaList.length === 0 && placeObj.image_path) {
+            let cleanPath = placeObj.image_path.replace(/\\/g, '/');
+            if (!cleanPath.startsWith('/static/')) {
+                cleanPath = cleanPath.startsWith('photos/') ? "/static/" + cleanPath : "/static/photos/" + cleanPath;
+            }
+            modalMediaList.push(cleanPath);
+        }
+
+        if (modalMediaList.length === 0) {
+            modalMediaList.push("https://placehold.co/800x450?text=No+Image+Found");
+        }
+
+        currentModalIndex = 0;
+        updateModalMediaView();
+
+        document.getElementById('modal-dynamic-buttons').innerHTML = `
+            <button onclick="closeModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-lg text-xs transition cursor-pointer">બંધ કરો</button>
+        `;
+        
+        document.getElementById('detailsModal').style.display = 'flex';
+    }
+
+    function updateModalMediaView() {
+        let modalImg = document.getElementById('modal-image');
+        let counter = document.getElementById('modalMediaCounter');
+        if(modalMediaList.length > 0) {
+            modalImg.src = modalMediaList[currentModalIndex];
+            counter.innerText = `${currentModalIndex + 1} / ${modalMediaList.length}`;
+        }
+    }
+
+    function nextModalMedia() {
+        if (modalMediaList.length <= 1) return;
+        currentModalIndex = (currentModalIndex + 1) % modalMediaList.length;
+        updateModalMediaView();
+    }
+
+    function prevModalMedia() {
+        if (modalMediaList.length <= 1) return;
+        currentModalIndex = (currentModalIndex - 1 + modalMediaList.length) % modalMediaList.length;
+        updateModalMediaView();
+    }
+    
+    function closeModal() { 
+        document.getElementById('detailsModal').style.display = 'none'; 
+    }
+</script>
+<!-- બોટમ ફ્લોટિંગ એડમિન/એડ પ્લેસ બાર -->
+<div class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-700 py-2.5 px-4 flex justify-center items-center gap-4 z-40 shadow-2xl">
+    {% if session.get('logged_in') or session.get('user_id') or session.get('role') == 'admin' %}
+        <a href="/add_place" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded shadow flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-plus"></i> Add Place
+        </a>
+    {% endif %}
+
+    {% if session.get('role') == 'admin' or session.get('user_id') == 1 or session.get('username') == 'Main Admin' %}
+        <a href="/admin/categories" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded shadow flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-folder-plus"></i> Categories
+        </a>
+        
+        <a href="/admin/approval" class="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs sm:text-sm px-4 py-2 rounded shadow flex items-center gap-1 cursor-pointer">
+           <i class="fa-solid fa-clipboard-check"></i> 
+            Pending: {{ pending_count if pending_count is defined else '0' }}
+        </a>
+    {% endif %}
+</div>
+<script>
+    const filterCountry = document.getElementById('filterCountrySelect');
+    const filterState = document.getElementById('filterStateSelect');
+    const filterCity = document.getElementById('filterCitySelect');
+
+    // પેજ લોડ થાય ત્યારે બધા દેશો લાવવા માટેની API
+    fetch('https://countriesnow.space/api/v0.1/countries/positions')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error && data.data) {
+                data.data.forEach(c => {
+                    let opt = document.createElement('option');
+                    opt.value = c.name;
+                    opt.textContent = c.name;
+                    // જો અગાઉ સિલેક્ટ કરેલો દેશ હોય તો તેને સેવ રાખવા માટે
+                    if (c.name === "{{ sel_country }}") {
+                        opt.selected = true;
+                    }
+                    filterCountry.appendChild(opt);
+                });
+            }
+        });
+
+    // દેશ બદલાય ત્યારે રાજ્યો અને શહેરો બદલાવવાની પ્રોસેસ
+    filterCountry.addEventListener('change', function() {
+        const selectedCountry = this.value;
+        filterState.innerHTML = '<option value="All States">All States</option>';
+        filterCity.innerHTML = '<option value="All Districts">All Districts</option>';
+
+        if (!selectedCountry || selectedCountry === 'All Countries') return;
+
+        // રાજ્યો લાવવા માટે
+        fetch('https://countriesnow.space/api/v0.1/countries/states', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: selectedCountry })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error && data.data && data.data.states) {
+                data.data.states.forEach(state => {
+                    let opt = document.createElement('option');
+                    opt.value = state.name;
+                    opt.textContent = state.name;
+                    filterState.appendChild(opt);
+                });
+            }
+        });
+
+        // જિલ્લાઓ/શહેરો લાવવા માટે
+        fetch('https://countriesnow.space/api/v0.1/countries/cities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: selectedCountry })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.error && data.data) {
+                data.data.forEach(city => {
+                    let opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    filterCity.appendChild(opt);
+                });
+            }
+        });
+    });
+</script>
+
+{% endblock %}

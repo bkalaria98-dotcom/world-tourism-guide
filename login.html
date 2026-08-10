@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg border border-slate-200 my-6 relative">
+    
+    <!-- ⬅️ પાછા ફરવાનું બટન -->
+    <a href="/" class="absolute top-4 left-4 text-xs font-bold text-slate-500 hover:text-teal-700 bg-slate-100 px-2.5 py-1 rounded border transition flex items-center gap-1">
+        <i class="fa-solid fa-arrow-left"></i> Back to Home
+    </a>
+
+    <div class="flex justify-around border-b pb-3 mt-6 mb-5">
+        <button onclick="toggleAuth('login-box')" class="text-base font-bold text-teal-700 focus:outline-none border-b-2 border-teal-600 pb-1">Sign In</button>
+        <button onclick="toggleAuth('register-box')" class="text-base font-bold text-slate-400 focus:outline-none pb-1">Create Account</button>
+    </div>
+
+    <div id="login-box" class="auth-panel space-y-4">
+        <form method="POST" action="/login">
+            <input type="hidden" name="action" value="login">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Email Address *</label>
+                <input type="email" name="email" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Password *</label>
+                <input type="password" name="password" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-lg text-sm transition mt-2 shadow">
+                Secure Login
+            </button>
+        </form>
+    </div>
+
+    <div id="register-box" class="auth-panel hidden space-y-4">
+        <form method="POST" action="/login">
+            <input type="hidden" name="action" value="register">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Full Username *</label>
+                <input type="text" name="username" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Email Address *</label>
+                <input type="email" name="email" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Choose Password *</label>
+                <input type="password" name="password" required class="w-full border rounded-lg p-2 text-sm bg-slate-50">
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-lg text-sm transition mt-2 shadow">
+                Register New Account
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleAuth(id) {
+    document.querySelectorAll('.auth-panel').forEach(el => el.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+</script>
+{% endblock %}
