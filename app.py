@@ -73,8 +73,8 @@ def index():
     
 
     if conn:
-        cursor = conn.cursor(dictionary=True)
-
+        #cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) as count FROM places WHERE is_approved = 0")
         res = cursor.fetchone()
         if res: pending_count = res['count']
@@ -179,7 +179,8 @@ def login():
         
         conn = get_db_connection()
         if conn:
-            cursor = conn.cursor(dictionary=True)
+            #cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor()
             if action == 'login':
                 cursor.execute("SELECT username, email, role FROM users WHERE email=%s AND password=%s", (email, password))
                 user = cursor.fetchone()
@@ -214,7 +215,8 @@ def add_place():
     conn = get_db_connection()
     categories = []
     if conn:
-        cursor = conn.cursor(dictionary=True)
+        #cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT name_eng FROM categories")
         categories = [r['name_eng'] for r in cursor.fetchall()]
         conn.close()
@@ -325,7 +327,8 @@ def view_place(place_id):
     conn = get_db_connection()
     place = None
     if conn:
-        cursor = conn.cursor(dictionary=True)
+        #cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         current_lang = session.get('lang', 'en') 
 
         cursor.execute("""
@@ -373,8 +376,8 @@ def edit_place(place_id):
         return redirect(url_for('index'))
         
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
+    #cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     if request.method == 'POST':
         title = request.form.get('title')
         exact_location = request.form.get('exact_location')
@@ -449,7 +452,8 @@ def approval_panel():
     conn = get_db_connection()
     pending_places = []
     if conn:
-        cursor = conn.cursor(dictionary=True)
+        #cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("""
             SELECT p.id, COALESCE(pt.title, 'No Title') as title, p.added_by 
             FROM places p 
@@ -483,7 +487,8 @@ def admin_categories():
     conn = get_db_connection()
     categories = []
     if conn:
-        cursor = conn.cursor(dictionary=True)
+        #cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("SELECT * FROM categories")
         categories = cursor.fetchall()
         conn.close()
@@ -535,7 +540,8 @@ def view_place_details(place_id):
         return redirect(url_for('login'))
         
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    #cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     cursor.execute("""
         SELECT p.*, pt.title, pt.description, l.village_city, l.district, l.state, l.country, c.name_eng as category
         FROM places p
@@ -556,7 +562,8 @@ def admin_dashboard():
         return redirect(url_for('login'))
         
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    #cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     cursor.execute("""
         SELECT p.id, COALESCE(pt.title, 'No Title') as title, p.added_by 
