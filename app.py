@@ -3,6 +3,7 @@ import os
 import mysql.connector
 from werkzeug.utils import secure_filename
 from deep_translator import GoogleTranslator
+import sqlite3
 
 app = Flask(__name__)
 app.secret_key = "tourism_secret_key_101"
@@ -16,16 +17,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov', 'avi', 'mkv'}
 
 def get_db_connection():
-    try:
-        return mysql.connector.connect(
-            host="localhost", 
-            user="root", 
-            password="Patel@101", 
-            database="world_tourism"
-        )
-    except mysql.connector.Error as err:
-        print(f"Database Error: {err}")
-        return None
+    conn = sqlite3.connect('world_tourism.db ')
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
