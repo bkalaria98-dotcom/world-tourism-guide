@@ -17,7 +17,7 @@ if not os.path.exists(UPLOAD_FOLDER):
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'mp4', 'mov', 'avi', 'mkv'}
 
 def get_db_connection():
-    conn = sqlite3.connect('world_tourism.db ')
+    conn = sqlite3.connect('render_tourism.db')
     conn.row_factory = sqlite3.Row
     return conn
 def init_db():
