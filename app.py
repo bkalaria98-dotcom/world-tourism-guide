@@ -34,7 +34,7 @@ def log_visitor():
     conn = get_db_connection()
     if conn:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO visitor_logs (user_id) VALUES (%s)", (user_id,))
+        cursor.execute("INSERT INTO visitor_logs (user_id) VALUES (?)", (user_id,))
         conn.commit()
         conn.close()
 
