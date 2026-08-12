@@ -180,6 +180,7 @@ def index():
 
         current_lang = session.get('lang', 'en')
 
+
         query = """
             SELECT p.id, 
                    COALESCE(pt_lang.title, pt_any.title, 'No Title') as title,
@@ -189,7 +190,7 @@ def index():
                    c.name_eng as category, p.added_by,
                    p.exact_location, p.food_stay, p.transport
             FROM places p
-            LEFT JOIN places_translations pt_lang ON p.id = pt_lang.place_id AND pt_lang.lang = %s
+            LEFT JOIN places_translations pt_lang ON p.id = pt_lang.place_id AND pt_lang.lang = ?
             LEFT JOIN (
                 SELECT place_id, MIN(title) as title, MIN(description) as description 
                 FROM places_translations 
@@ -203,21 +204,21 @@ def index():
         params = [current_lang]
         
         if country_filter != 'All Countries':
-            query += " AND l.country = %s"
+            query += " AND l.country = ?"
             params.append(country_filter)
         if state_filter != 'All States':
-            query += " AND l.state = %s"
+            query += " AND l.state = ?"
             params.append(state_filter)
         if district_filter != 'All Districts':
-            query += " AND l.district = %s"
+            query += " AND l.district = ?"
             params.append(district_filter)
         if category_filter != 'All Categories':
-            query += " AND c.name_eng = %s"
+            query += " AND c.name_eng = ?"
             params.append(category_filter)
         if search_query:
-            query += " AND (pt_lang.title LIKE %s OR pt_default.title LIKE %s OR l.village_city LIKE %s)"
+            query += " AND (pt_lang.title LIKE ? OR pt_default.title LIKE ? OR l.village_city LIKE ?)"
             params.extend([f"%{search_query}%", f"%{search_query}%", f"%{search_query}%"])
-            
+                    
         cursor.execute(query, tuple(params))
         places_list = cursor.fetchall()
         
