@@ -23,6 +23,8 @@ def get_db_connection():
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
+    
+    # 1. Visitor Logs Table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS visitor_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,10 +32,85 @@ def init_db():
             visit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # 2. Users Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            email TEXT,
+            password TEXT,
+            role TEXT DEFAULT 'User',
+            mobile TEXT,
+            address TEXT,
+            dob TEXT
+        )
+    ''')
+
+    # 3. Categories Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name_eng TEXT UNIQUE,
+            name_guj TEXT
+        )
+    ''')
+
+    # 4. Locations Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS locations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            village_city TEXT,
+            district TEXT,
+            state TEXT,
+            country TEXT
+        )
+    ''')
+
+    # 5. Places Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS places (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            location_id INTEGER,
+            category_id INTEGER,
+            image_path TEXT,
+            added_by TEXT,
+            is_approved INTEGER DEFAULT 0,
+            exact_location TEXT,
+            food_stay TEXT,
+            transport TEXT,
+            FOREIGN KEY(location_id) REFERENCES locations(id),
+            FOREIGN KEY(category_id) REFERENCES categories(id)
+        )
+    ''')
+
+    # 6. Place Media Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS place_media (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            place_id INTEGER,
+            file_path TEXT,
+            media_type TEXT,
+            FOREIGN KEY(place_id) REFERENCES places(id)
+        )
+    ''')
+
+    # 7. Places Translations Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS places_translations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            place_id INTEGER,
+            lang TEXT,
+            title TEXT,
+            description TEXT,
+            FOREIGN KEY(place_id) REFERENCES places(id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
-# એપ્લિકેશન શરૂ થાય ત્યારે ડેટાબેઝ ટેબલ બનાવવા માટે
+# એપ્લિકેશન શરૂ થાય ત્યારે બધા ટેબલ બનાવવા માટે
 init_db()
 
 
