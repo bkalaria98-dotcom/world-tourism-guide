@@ -20,6 +20,22 @@ def get_db_connection():
     conn = sqlite3.connect('world_tourism.db ')
     conn.row_factory = sqlite3.Row
     return conn
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS visitor_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            visit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# એપ્લિકેશન શરૂ થાય ત્યારે ડેટાબેઝ ટેબલ બનાવવા માટે
+init_db()
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
