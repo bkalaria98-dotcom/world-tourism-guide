@@ -223,7 +223,7 @@ def index():
         places_list = cursor.fetchall()
         
         for place in places_list:
-            cursor.execute("SELECT file_path FROM place_media WHERE place_id = %s", (place['id'],))
+            cursor.execute("SELECT file_path FROM place_media WHERE place_id = ?", (place['id'],))
             media_rows = cursor.fetchall()
             place['photos'] = [row['file_path'] for row in media_rows]
         
@@ -260,7 +260,7 @@ def login():
             #cursor = conn.cursor(dictionary=True)
             cursor = conn.cursor()
             if action == 'login':
-                cursor.execute("SELECT username, email, role FROM users WHERE email=%s AND password=%s", (email, password))
+                cursor.execute("SELECT username, email, role FROM users WHERE email=? AND password=?", (email, password))
                 user = cursor.fetchone()
                 if user:
                     session['logged_in'] = True
@@ -273,7 +273,7 @@ def login():
                     flash("Invalid Credentials!", "danger")
             elif action == 'register':
                 username = request.form.get('username').strip()
-                cursor.execute("INSERT INTO users (username, email, password, role) VALUES (%s, %s, %s, 'User')", (username, email, password))
+                cursor.execute("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'User')", (username, email, password))
                 conn.commit()
                 flash("Registered! Please Log In.", "success")
             conn.close()
@@ -315,18 +315,18 @@ def add_place():
         conn = get_db_connection()
         if conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM categories WHERE name_eng = %s", (category,))
+            cursor.execute("SELECT id FROM categories WHERE name_eng = ?", (category,))
             cat_row = cursor.fetchone()
             cat_id = cat_row[0] if cat_row else None
             
-            cursor.execute("INSERT INTO locations (village_city, district, state, country) VALUES (%s, %s, %s, %s)", (city, district, state, country))
+            cursor.execute("INSERT INTO locations (village_city, district, state, country) VALUES (?, ?, ?, ?)", (city, district, state, country))
             loc_id = cursor.lastrowid
             
             is_approved = 1 if session.get('role') == 'admin' else 0
             
             cursor.execute("""
                 INSERT INTO places (location_id, category_id, image_path, added_by, is_approved, exact_location, food_stay, transport) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (loc_id, cat_id, "", user_name, is_approved, exact_location, food_stay, transport))
             place_id = cursor.lastrowid
             
@@ -345,11 +345,11 @@ def add_place():
 
                     cursor.execute("""
                         INSERT INTO place_media (place_id, file_path, media_type) 
-                        VALUES (%s, %s, %s)
+                        VALUES (?, ?, ?)
                     """, (place_id, file_relative_path, 'image'))
 
             if first_image_path:
-                cursor.execute("UPDATE places SET image_path = %s WHERE id = %s", (first_image_path, place_id))
+                cursor.execute("UPDATE places SET image_path = ? WHERE id = ?", (first_image_path, place_id))
 
             video_file = request.files.get('video')
             if video_file and video_file.filename != '':
@@ -360,7 +360,7 @@ def add_place():
                 
                 cursor.execute("""
                     INSERT INTO place_media (place_id, file_path, media_type) 
-                    VALUES (%s, %s, %s)
+                    VALUES (?, ?, ?)
                 """, (place_id, vid_path, 'video'))
 
             world_languages = {
@@ -390,7 +390,7 @@ def add_place():
 
                 cursor.execute("""
                     INSERT INTO places_translations (place_id, lang, title, description) 
-                    VALUES (%s, %s, %s, %s)
+                    VALUES (?, ?, ?, ?)
                 """, (place_id, lang_code, trans_title, trans_desc))
 
             conn.commit()
@@ -417,18 +417,18 @@ def view_place(place_id):
                    l.country, l.state, l.district,
                    p.exact_location, p.food_stay, p.transport, p.added_by
             FROM places p
-            LEFT JOIN places_translations pt_lang ON p.id = pt_lang.place_id AND pt_lang.lang = %s
+            LEFT JOIN places_translations pt_lang ON p.id = pt_lang.place_id AND pt_lang.lang = ?
             LEFT JOIN places_translations pt_default ON p.id = pt_default.place_id AND pt_default.lang = 'en'
             LEFT JOIN locations l ON p.location_id = l.id
             LEFT JOIN categories c ON p.category_id = c.id
-            WHERE p.id = %s
+            WHERE p.id = ?
         """, (current_lang, place_id))
         
         place = cursor.fetchone()
         
         # મલ્ટીપલ ફોટા અને વિડિયો લાવવા માટેનું લૂપ
         if place:
-            cursor.execute("SELECT file_path, media_type FROM place_media WHERE place_id = %s", (place_id,))
+            cursor.execute("SELECT file_path, media_type FROM place_media WHERE place_id = ?", (place_id,))
             media_rows = cursor.fetchall()
             place['photos'] = [row['file_path'] for row in media_rows if row['media_type'] == 'image']
             
@@ -478,7 +478,7 @@ def edit_place(place_id):
                 
                 cursor.execute("""
                     INSERT INTO place_media (place_id, file_path, media_type) 
-                    VALUES (%s, %s, %s)
+                    VALUES (?, ?, ?)
                 """, (place_id, file_relative_path, 'image'))
 
         single_file = request.files.get('photo')
@@ -487,18 +487,18 @@ def edit_place(place_id):
             file_relative_path = os.path.join('photos', filename)
             single_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             
-            cursor.execute("UPDATE places SET image_path = %s WHERE id = %s", (file_relative_path, place_id))
+            cursor.execute("UPDATE places SET image_path = ? WHERE id = ?", (file_relative_path, place_id))
             cursor.execute("""
                 INSERT INTO place_media (place_id, file_path, media_type) 
-                VALUES (%s, %s, %s)
+                VALUES ?, ?, ?)
             """, (place_id, file_relative_path, 'image'))
 
-        cursor.execute("UPDATE places_translations SET title=%s, description=%s WHERE place_id=%s", (title, description, place_id))
+        cursor.execute("UPDATE places_translations SET title=?, description=? WHERE place_id=?", (title, description, place_id))
         cursor.execute("""
             UPDATE places p 
             JOIN locations l ON p.location_id = l.id 
-            SET p.exact_location=%s, p.food_stay=%s, p.transport=%s, l.village_city=%s, l.district=%s, l.state=%s, l.country=%s
-            WHERE p.id=%s
+            SET p.exact_location=?, p.food_stay=?, p.transport=?, l.village_city=?, l.district=?, l.state=?, l.country=?
+            WHERE p.id=?
         """, (exact_location, food_stay, transport, city, district, state, country, place_id))
         
         conn.commit()
@@ -513,7 +513,7 @@ def edit_place(place_id):
         LEFT JOIN places_translations pt ON p.id = pt.place_id
         LEFT JOIN locations l ON p.location_id = l.id
         LEFT JOIN categories c ON p.category_id = c.id
-        WHERE p.id = %s
+        WHERE p.id = ?
     """, (place_id,))
     place = cursor.fetchone()
     
@@ -546,7 +546,7 @@ def approval_panel():
 def approve_place(place_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE places SET is_approved = 1 WHERE id = %s", (place_id,))
+    cursor.execute("UPDATE places SET is_approved = 1 WHERE id = ?", (place_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('approval_panel'))
@@ -555,7 +555,7 @@ def approve_place(place_id):
 def delete_place(place_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM places WHERE id = %s", (place_id,))
+    cursor.execute("DELETE FROM places WHERE id = ?", (place_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('approval_panel'))
@@ -583,7 +583,7 @@ def add_category():
     if conn and cat_name:
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO categories (name_eng, name_guj) VALUES (%s, %s)", (cat_name, cat_name))
+            cursor.execute("INSERT INTO categories (name_eng, name_guj) VALUES (?, ?)", (cat_name, cat_name))
             conn.commit()
             flash("Category Added Successfully!", "success")
         except Exception as e:
@@ -604,7 +604,7 @@ def delete_category(cat_id):
     if session.get('role') == 'admin':
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM categories WHERE id = %s", (cat_id,))
+        cursor.execute("DELETE FROM categories WHERE id = ?", (cat_id,))
         conn.commit()
         conn.close()
         flash("Category deleted successfully!", "success")
@@ -626,7 +626,7 @@ def view_place_details(place_id):
         LEFT JOIN places_translations pt ON p.id = pt.place_id
         LEFT JOIN locations l ON p.location_id = l.id
         LEFT JOIN categories c ON p.category_id = c.id
-        WHERE p.id = %s
+        WHERE p.id = ?
     """, (place_id,))
     place = cursor.fetchone()
     conn.close()
@@ -677,7 +677,7 @@ def user_profile():
     conn1 = get_db_connection()
     if conn1:
         cursor1 = conn1.cursor(dictionary=True)
-        cursor1.execute("SELECT * FROM users WHERE username = %s", (username,))
+        cursor1.execute("SELECT * FROM users WHERE username = ?", (username,))
         user_data = cursor1.fetchone()
         cursor1.fetchall()
         cursor1.close()
@@ -692,7 +692,7 @@ def user_profile():
             LEFT JOIN places_translations pt ON p.id = pt.place_id
             LEFT JOIN locations l ON p.location_id = l.id
             LEFT JOIN categories c ON p.category_id = c.id
-            WHERE p.added_by = %s
+            WHERE p.added_by = ?
         """, (username,))
         user_places = cursor2.fetchall()
         cursor2.close()
@@ -721,8 +721,8 @@ def update_profile():
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE users 
-                SET username = %s, mobile = %s, address = %s, dob = %s 
-                WHERE username = %s
+                SET username = ?, mobile = ?, address = ?, dob = ? 
+                WHERE username = ?
             """, (new_username, mobile, address, dob, current_username))
             conn.commit()
             cursor.close()
