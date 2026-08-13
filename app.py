@@ -5,7 +5,13 @@ from werkzeug.utils import secure_filename
 from deep_translator import GoogleTranslator
 import sqlite3
 
-app = Flask(__name__)
+import os
+from flask import Flask, render_template
+
+# ફ્લાસ્કને ચોક્કસપણે કહી દો કે templates ફોલ્ડર ક્યાં છે
+template_dir = os.path.abspath(os.path.dirname(__file__))
+app = Flask(__name__, template_folder=template_dir)
+#app = Flask(__name__)
 app.secret_key = "tourism_secret_key_101"
 
 UPLOAD_FOLDER = 'static/photos'
