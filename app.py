@@ -289,8 +289,10 @@ def login():
                     session['role'] = user['role'].strip().lower()
                     flash(f"Welcome back, {user['username']}!", "success")
                     conn.close()
+                    print("User found:", user['username']) # આ ટર્મિનલ કે રેન્ડર લોગમાં દેખાશે
                     return redirect(url_for('index'))
                 else:
+                    print("User not found or password incorrect")
                     flash("Invalid Credentials!", "danger")
             elif action == 'register':
                 username = request.form.get('username').strip()
