@@ -127,15 +127,24 @@ WORLD_COUNTRIES = ["India", "United States", "United Kingdom", "Canada", "Austra
 INDIA_STATES = ["Gujarat", "Maharashtra", "Rajasthan", "Madhya Pradesh", "Goa"]
 GUJARAT_DISTRICTS = ["Ahmedabad", "Baroda", "Surat", "Rajkot", "Bhavnagar", "Kutch", "Junagadh"]
 
+from flask import request
+
 @app.before_request
 def log_visitor():
-    user_id = session.get('user_id')
-    conn = get_db_connection()
-    if conn:
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO visitor_logs (user_id) VALUES (?)", (user_id,))
-        conn.commit()
-        conn.close()
+    # જો સ્ટેટિક ફાઇલો કે એસેટ્સ લોડ થતી હોય તો લોગ ન કરો
+    if request.path.startswith('/static'):
+        return
+
+    try:
+        user_id = session.get('user_id')
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO visitor_logs (user_id) VALUES (?)", (user_id,))
+            conn.commit()
+            conn.close()
+    except Exception as e:
+        print("Visitor log error:", e)
 
 
 
