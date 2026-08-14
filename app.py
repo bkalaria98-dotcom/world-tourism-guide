@@ -130,6 +130,8 @@ GUJARAT_DISTRICTS = ["Ahmedabad", "Baroda", "Surat", "Rajkot", "Bhavnagar", "Kut
 
 from flask import request
 
+from flask import request
+
 @app.before_request
 def log_visitor():
     # જો સ્ટેટિક ફાઇલો કે એસેટ્સ લોડ થતી હોય તો લોગ ન કરો
