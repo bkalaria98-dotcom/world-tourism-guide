@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from deep_translator import GoogleTranslator
 import sqlite3
 
+
 import os
 from flask import Flask, render_template
 
