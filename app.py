@@ -275,8 +275,10 @@ def login():
         
         conn = get_db_connection()
         if conn:
-            #cursor = conn.cursor(dictionary=True)
+            # આ લાઇન ઉમેરવી જરૂરી છે જેથી user['username'] કામ કરે
+            conn.row_factory = sqlite3.Row 
             cursor = conn.cursor()
+            
             if action == 'login':
                 cursor.execute("SELECT username, email, role FROM users WHERE email=? AND password=?", (email, password))
                 user = cursor.fetchone()
@@ -286,6 +288,7 @@ def login():
                     session['email'] = user['email']
                     session['role'] = user['role'].strip().lower()
                     flash(f"Welcome back, {user['username']}!", "success")
+                    conn.close()
                     return redirect(url_for('index'))
                 else:
                     flash("Invalid Credentials!", "danger")
